@@ -46,3 +46,8 @@ Thumbs.db
 *.suo
 *.swp
 *.swo
+ #md files
+ .AGENTS.md
+ .ARCHITECTURE.md
+ .PROJECT_PLAN.md
+ 
