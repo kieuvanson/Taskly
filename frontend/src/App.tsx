@@ -70,7 +70,7 @@ function App() {
     return (
       <main className="auth-page">
         <section className="auth-panel">
-          <div className="auth-brand"><span className="brand-mark">T</span><span>Taskly</span></div>
+          <div className="auth-brand"><img className="taskly-logo" src="/taskly-logo.svg" alt="" /><span>Taskly</span></div>
           <div className="auth-heading"><p className="eyebrow">Không gian làm việc của bạn</p><h1>{authMode === 'login' ? 'Chào mừng trở lại.' : 'Bắt đầu cùng Taskly.'}</h1><p>{authMode === 'login' ? 'Đăng nhập để tiếp tục công việc đang dang dở.' : 'Tạo tài khoản để sắp xếp công việc rõ ràng hơn.'}</p></div>
           <form className="auth-form" onSubmit={submitAuth}>
             {authMode === 'register' && <label><span>Họ và tên</span><div className="auth-input"><UserRound aria-hidden="true" /><input value={authName} onChange={(event) => setAuthName(event.target.value)} placeholder="Nguyễn Văn A" autoComplete="name" /></div></label>}
@@ -101,7 +101,7 @@ function App() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="brand"><span className="brand-mark">T</span><span>Taskly</span></div>
+        <div className="brand"><img className="taskly-logo" src="/taskly-logo.svg" alt="" /><span>Taskly</span></div>
         <nav className="main-nav" aria-label="Điều hướng chính">
           <p className="nav-label">Không gian làm việc</p>
           <button className="nav-item active" type="button"><LayoutDashboard aria-hidden="true" /> Tổng quan</button>
