@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Bell, CalendarDays, Check, CheckCircle2, CircleHelp, Clock3, Inbox, LayoutDashboard, ListTodo, MoreHorizontal, Plus, Search, Settings, Sun } from 'lucide-react'
+import { ArrowRight, Bell, CalendarDays, Check, CheckCircle2, CircleHelp, Clock3, Inbox, LayoutDashboard, ListTodo, LockKeyhole, Mail, MoreHorizontal, Plus, Search, Settings, Sun, UserRound } from 'lucide-react'
 import './App.css'
 
 type Task = {
@@ -28,6 +28,12 @@ const priorityLabels: Record<Task['priority'], string> = {
 }
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
+  const [authName, setAuthName] = useState('')
+  const [authEmail, setAuthEmail] = useState('')
+  const [authPassword, setAuthPassword] = useState('')
+  const [authError, setAuthError] = useState('')
   const [tasks, setTasks] = useState(initialTasks)
   const [filter, setFilter] = useState<'all' | 'open' | 'done'>('all')
   const [newTask, setNewTask] = useState('')
@@ -41,6 +47,44 @@ function App() {
 
   const completedCount = tasks.filter((task) => task.completed).length
   const openCount = tasks.length - completedCount
+
+  function submitAuth(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (authMode === 'register' && !authName.trim()) {
+      setAuthError('Vui lòng nhập họ và tên.')
+      return
+    }
+    if (!authEmail.includes('@')) {
+      setAuthError('Vui lòng nhập email hợp lệ.')
+      return
+    }
+    if (authPassword.length < 6) {
+      setAuthError('Mật khẩu cần có ít nhất 6 ký tự.')
+      return
+    }
+    setAuthError('')
+    setIsAuthenticated(true)
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="auth-page">
+        <section className="auth-panel">
+          <div className="auth-brand"><span className="brand-mark">T</span><span>Taskly</span></div>
+          <div className="auth-heading"><p className="eyebrow">Không gian làm việc của bạn</p><h1>{authMode === 'login' ? 'Chào mừng trở lại.' : 'Bắt đầu cùng Taskly.'}</h1><p>{authMode === 'login' ? 'Đăng nhập để tiếp tục công việc đang dang dở.' : 'Tạo tài khoản để sắp xếp công việc rõ ràng hơn.'}</p></div>
+          <form className="auth-form" onSubmit={submitAuth}>
+            {authMode === 'register' && <label><span>Họ và tên</span><div className="auth-input"><UserRound aria-hidden="true" /><input value={authName} onChange={(event) => setAuthName(event.target.value)} placeholder="Nguyễn Văn A" autoComplete="name" /></div></label>}
+            <label><span>Email</span><div className="auth-input"><Mail aria-hidden="true" /><input type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="ten@vidu.com" autoComplete="email" /></div></label>
+            <label><span>Mật khẩu</span><div className="auth-input"><LockKeyhole aria-hidden="true" /><input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="Ít nhất 6 ký tự" autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} /></div>{authMode === 'login' && <button className="forgot-link" type="button">Quên mật khẩu?</button>}</label>
+            {authError && <p className="auth-error" role="alert">{authError}</p>}
+            <button className="auth-submit" type="submit">{authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'} <ArrowRight aria-hidden="true" /></button>
+          </form>
+          <div className="auth-switch"><span>{authMode === 'login' ? 'Chưa có tài khoản?' : 'Đã có tài khoản?'}</span><button type="button" onClick={() => { setAuthMode(authMode === 'login' ? 'register' : 'login'); setAuthError('') }}>{authMode === 'login' ? 'Đăng ký ngay' : 'Đăng nhập'}</button></div>
+        </section>
+        <aside className="auth-aside"><div className="auth-aside-content"><div className="auth-aside-copy"><span className="aside-kicker">TASKLY / WORKSPACE</span><h2>Một nơi để công việc<br /><em>đi đúng hướng.</em></h2><p>Tập trung vào điều quan trọng, theo dõi tiến độ và cùng đội nhóm hoàn thành từng bước.</p></div><div className="auth-aside-footer"><span>Đơn giản để bắt đầu</span><span>Rõ ràng để tiến xa</span></div></div></aside>
+      </main>
+    )
+  }
 
   function toggleTask(id: number) {
     setTasks((current) => current.map((task) => task.id === id ? { ...task, completed: !task.completed } : task))
@@ -72,11 +116,10 @@ function App() {
           <button className="project-item" type="button"><i className="dot green" /> Thiết kế sản phẩm <span>5</span></button>
           <button className="project-item" type="button"><i className="dot blue" /> Nghiên cứu <span>3</span></button>
         </div>
-        <div className="sidebar-footer"><button className="nav-item" type="button"><Settings aria-hidden="true" /> Cài đặt</button><div className="profile"><span className="avatar">KS</span><span><strong>Kiều Vân Sơn</strong><small>Không gian cá nhân</small></span><MoreHorizontal className="more" aria-hidden="true" /></div></div>
       </aside>
 
       <main className="main-content">
-        <header className="topbar"><div className="breadcrumb"><span>Không gian làm việc</span><b>/</b><strong>Tổng quan</strong></div><div className="top-actions"><button className="icon-button" type="button" aria-label="Tìm kiếm"><Search aria-hidden="true" /></button><button className="icon-button notification" type="button" aria-label="Thông báo"><Bell aria-hidden="true" /><i /></button><button className="help-button" type="button" aria-label="Trợ giúp"><CircleHelp aria-hidden="true" /></button></div></header>
+        <header className="topbar"><div className="breadcrumb"><span>Không gian làm việc</span><b>/</b><strong>Tổng quan</strong></div><div className="top-actions"><button className="icon-button" type="button" aria-label="Tìm kiếm"><Search aria-hidden="true" /></button><button className="icon-button notification" type="button" aria-label="Thông báo"><Bell aria-hidden="true" /><i /></button><button className="help-button" type="button" aria-label="Trợ giúp"><CircleHelp aria-hidden="true" /></button><span className="topbar-divider" /><button className="settings-button" type="button" aria-label="Cài đặt"><Settings aria-hidden="true" /></button><button className="account-menu" type="button" aria-label="Mở menu tài khoản"><span className="avatar">KS</span><span className="account-copy"><strong>Kiều Vân Sơn</strong><small>Không gian cá nhân</small></span><MoreHorizontal className="more" aria-hidden="true" /></button></div></header>
         <div className="content-wrap">
           <section className="welcome"><div><p className="eyebrow">Thứ Tư, ngày 9 tháng 9, 2026</p><h1>Chào buổi sáng, Sơn<span>.</span></h1><p className="subtitle">Một bàn làm việc gọn gàng giúp bạn tập trung vào điều quan trọng hôm nay.</p></div><button className="primary-button" type="button" onClick={() => document.getElementById('new-task')?.focus()}><Plus aria-hidden="true" /> Thêm việc</button></section>
           <section className="metrics" aria-label="Tóm tắt công việc"><div className="metric"><span className="metric-icon sun"><Sun aria-hidden="true" /></span><div><strong>{openCount}</strong><span>Việc đang mở</span></div></div><div className="metric"><span className="metric-icon check"><CheckCircle2 aria-hidden="true" /></span><div><strong>{completedCount}</strong><span>Đã hoàn thành</span></div></div><div className="metric"><span className="metric-icon clock"><Clock3 aria-hidden="true" /></span><div><strong>4 giờ 20 phút</strong><span>Thời gian tập trung</span></div></div><div className="metric metric-progress"><span className="metric-icon focus"><Sun aria-hidden="true" /></span><div className="progress-summary"><div><span>Tiến độ tuần</span><strong>68%</strong></div><div className="progress-track"><span /></div></div></div></section>
