@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.taskly.backend.dto.request.UserCreationRequest;
+import com.taskly.backend.dto.request.UserUpdateRequest;
 import com.taskly.backend.entity.user;
 import com.taskly.backend.repository.userRepository;
 
@@ -25,10 +26,29 @@ public user createRequest(UserCreationRequest request) {
     newUser.setEmail(request.getEmail());
     newUser.setAge(request.getAge());
 
-   return userRepository.save(newUser);
+    return userRepository.saveAndFlush(newUser);
 
 }
 public List<user> getAllUsers() {
     return userRepository.findAll();
+}
+public user getUserById(String userId) {
+    return userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+}
+public user updateUser(String userId, UserUpdateRequest request) {
+   user user =getUserById(userId);
+    user.setFirstName(request.getFirstName());
+    user.setLastName(request.getLastName());
+    user.setPassword(request.getPassword());
+    user.setEmail(request.getEmail());
+    user.setAge(request.getAge());
+
+    return userRepository.saveAndFlush(user);
+}
+public void deleteUser(String userId) {
+    user user = getUserById(userId);
+    userRepository.delete(user);
+    userRepository.flush();
 }
 }
