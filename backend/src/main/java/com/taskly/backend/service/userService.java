@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import com.taskly.backend.dto.request.UserCreationRequest;
 import com.taskly.backend.dto.request.UserUpdateRequest;
 import com.taskly.backend.entity.user;
+import com.taskly.backend.exception.AppException;
+import com.taskly.backend.exception.ErrorCode;
 import com.taskly.backend.repository.userRepository;
 
 @Service
@@ -19,6 +21,9 @@ private  userRepository userRepository;
 
 public user createRequest(UserCreationRequest request) {
     user newUser = new user();
+    if (userRepository.existsByUsername(request.getUsername())) {
+        throw new AppException(ErrorCode.USERNAME_ALREADY_EXISTS);
+    }
     newUser.setUsername(request.getUsername());
     newUser.setFirstName(request.getFirstName());
     newUser.setLastName(request.getLastName());

@@ -1,0 +1,5 @@
+$kind: http-request
+description: ""
+url: http://localhost:8080/users/4efc367b-afd1-40a5-9dc4-417435d9a269
+method: GET
+order: 3936918784839634

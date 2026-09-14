@@ -1,10 +1,16 @@
 package com.taskly.backend.dto.request;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
+
 public class UserCreationRequest {
+    @Size (min = 3, message = "Username must be at least 3 characters long")
     private String username;
     private String firstName;
     private String lastName;
+    @Size (min = 8, message = "Password must be at least 8 characters long")
     private String password;
+    @Email(message = "Email should be valid")
     private String email;
     private int age;
     public String getUsername() {
