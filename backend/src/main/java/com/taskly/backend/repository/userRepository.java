@@ -6,4 +6,5 @@ import com.taskly.backend.entity.user;
 
 public interface userRepository extends JpaRepository<user, String> {
     boolean existsByUsername(String username);
+    java.util.Optional<user> findByUsername(String username);
 }

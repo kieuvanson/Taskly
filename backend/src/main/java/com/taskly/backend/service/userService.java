@@ -24,15 +24,33 @@ public user createRequest(UserCreationRequest request) {
     if (userRepository.existsByUsername(request.getUsername())) {
         throw new AppException(ErrorCode.USERNAME_ALREADY_EXISTS);
     }
+
     newUser.setUsername(request.getUsername());
     newUser.setFirstName(request.getFirstName());
     newUser.setLastName(request.getLastName());
+    if (!request.getPassword().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$")) {
+        throw new AppException(ErrorCode.IsValidPassword);
+    }
     newUser.setPassword(request.getPassword());
+
     newUser.setEmail(request.getEmail());
+    if (request.getAge() < 18) {
+        throw new AppException(ErrorCode.AGE_MUST_BE_AT_LEAST_18);
+    }
     newUser.setAge(request.getAge());
 
     return userRepository.saveAndFlush(newUser);
 
+}
+public user login(String username, String password) {
+    user existingUser = userRepository.findByUsername(username)
+            .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
+
+    if (!existingUser.getPassword().equals(password)) {
+        throw new AppException(ErrorCode.INVALID_CREDENTIALS);
+    }
+
+    return existingUser;
 }
 public List<user> getAllUsers() {
     return userRepository.findAll();

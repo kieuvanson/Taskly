@@ -31,9 +31,12 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const [authName, setAuthName] = useState('')
+  const [authUsername, setAuthUsername] = useState('')
   const [authEmail, setAuthEmail] = useState('')
+  const [authAge, setAuthAge] = useState('')
   const [authPassword, setAuthPassword] = useState('')
   const [authError, setAuthError] = useState('')
+  const [isSubmittingAuth, setIsSubmittingAuth] = useState(false)
   const [tasks, setTasks] = useState(initialTasks)
   const [filter, setFilter] = useState<'all' | 'open' | 'done'>('all')
   const [newTask, setNewTask] = useState('')
@@ -48,22 +51,56 @@ function App() {
   const completedCount = tasks.filter((task) => task.completed).length
   const openCount = tasks.length - completedCount
 
-  function submitAuth(event: FormEvent<HTMLFormElement>) {
+  async function submitAuth(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (authMode === 'register' && !authName.trim()) {
       setAuthError('Vui lòng nhập họ và tên.')
       return
     }
-    if (!authEmail.includes('@')) {
+    if (!authUsername.trim()) {
+      setAuthError('Vui lòng nhập username.')
+      return
+    }
+    if (authMode === 'register' && !authEmail.includes('@')) {
       setAuthError('Vui lòng nhập email hợp lệ.')
       return
     }
-    if (authPassword.length < 6) {
-      setAuthError('Mật khẩu cần có ít nhất 6 ký tự.')
+    if (authMode === 'register' && !authAge) {
+      setAuthError('Vui lòng nhập tuổi.')
       return
     }
     setAuthError('')
-    setIsAuthenticated(true)
+    setIsSubmittingAuth(true)
+
+    const payload = authMode === 'register'
+      ? {
+          username: authUsername.trim(),
+          firstName: authName.trim(),
+          lastName: '',
+          password: authPassword,
+          email: authEmail.trim(),
+          age: Number(authAge),
+        }
+      : { username: authUsername.trim(), password: authPassword }
+
+    try {
+      const response = await fetch(`http://localhost:8080/users${authMode === 'login' ? '/login' : ''}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const result = await response.json() as { message?: string }
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Không thể xác thực tài khoản.')
+      }
+
+      setIsAuthenticated(true)
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Không thể kết nối tới máy chủ.')
+    } finally {
+      setIsSubmittingAuth(false)
+    }
   }
 
   if (!isAuthenticated) {
@@ -74,10 +111,12 @@ function App() {
           <div className="auth-heading"><p className="eyebrow">Không gian làm việc của bạn</p><h1>{authMode === 'login' ? 'Chào mừng trở lại.' : 'Bắt đầu cùng Taskly.'}</h1><p>{authMode === 'login' ? 'Đăng nhập để tiếp tục công việc đang dang dở.' : 'Tạo tài khoản để sắp xếp công việc rõ ràng hơn.'}</p></div>
           <form className="auth-form" onSubmit={submitAuth}>
             {authMode === 'register' && <label><span>Họ và tên</span><div className="auth-input"><UserRound aria-hidden="true" /><input value={authName} onChange={(event) => setAuthName(event.target.value)} placeholder="Nguyễn Văn A" autoComplete="name" /></div></label>}
-            <label><span>Email</span><div className="auth-input"><Mail aria-hidden="true" /><input type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="ten@vidu.com" autoComplete="email" /></div></label>
-            <label><span>Mật khẩu</span><div className="auth-input"><LockKeyhole aria-hidden="true" /><input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="Ít nhất 6 ký tự" autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} /></div>{authMode === 'login' && <button className="forgot-link" type="button">Quên mật khẩu?</button>}</label>
+            <label><span>Username</span><div className="auth-input"><UserRound aria-hidden="true" /><input value={authUsername} onChange={(event) => setAuthUsername(event.target.value)} placeholder="ten_dang_nhap" autoComplete="username" /></div></label>
+            {authMode === 'register' && <label><span>Email</span><div className="auth-input"><Mail aria-hidden="true" /><input type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="ten@vidu.com" autoComplete="email" /></div></label>}
+            {authMode === 'register' && <label><span>Tuổi</span><div className="auth-input"><input type="number" min="18" value={authAge} onChange={(event) => setAuthAge(event.target.value)} placeholder="18" /></div></label>}
+            <label><span>Mật khẩu</span><div className="auth-input"><LockKeyhole aria-hidden="true" /><input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="Ít nhất 8 ký tự, có chữ hoa, số và ký tự đặc biệt" autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} /></div>{authMode === 'login' && <button className="forgot-link" type="button">Quên mật khẩu?</button>}</label>
             {authError && <p className="auth-error" role="alert">{authError}</p>}
-            <button className="auth-submit" type="submit">{authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'} <ArrowRight aria-hidden="true" /></button>
+            <button className="auth-submit" type="submit" disabled={isSubmittingAuth}>{isSubmittingAuth ? 'Đang xử lý...' : authMode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'} {!isSubmittingAuth && <ArrowRight aria-hidden="true" />}</button>
           </form>
           <div className="auth-switch"><span>{authMode === 'login' ? 'Chưa có tài khoản?' : 'Đã có tài khoản?'}</span><button type="button" onClick={() => { setAuthMode(authMode === 'login' ? 'register' : 'login'); setAuthError('') }}>{authMode === 'login' ? 'Đăng ký ngay' : 'Đăng nhập'}</button></div>
         </section>

@@ -10,10 +10,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.taskly.backend.dto.request.APIrespone;
+import com.taskly.backend.dto.request.LoginRequest;
 import com.taskly.backend.dto.request.UserCreationRequest;
 import com.taskly.backend.dto.request.UserUpdateRequest;
+import com.taskly.backend.dto.response.UserResponse;
 import com.taskly.backend.entity.user;
 import com.taskly.backend.service.userService;
 
@@ -23,14 +26,22 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
+@CrossOrigin(origins = "http://localhost:5173")
 public class userController {
     @Autowired 
     private  userService userService;
 
     @PostMapping
-    public  APIrespone<user> createUser(@RequestBody @Valid UserCreationRequest request) {
-        APIrespone<user> response = new APIrespone<>();
-        response.setData(userService.createRequest(request));
+    public APIrespone<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
+        APIrespone<UserResponse> response = new APIrespone<>();
+        response.setData(toResponse(userService.createRequest(request)));
+        return response;
+    }
+
+    @PostMapping("/login")
+    public APIrespone<UserResponse> login(@RequestBody @Valid LoginRequest request) {
+        APIrespone<UserResponse> response = new APIrespone<>();
+        response.setData(toResponse(userService.login(request.getUsername(), request.getPassword())));
         return response;
     }
     
@@ -44,13 +55,24 @@ public class userController {
     }
 
    @PutMapping("/{userId}")
-    public user updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request) {
+    public user updateUser(@PathVariable String userId, @RequestBody @Valid UserUpdateRequest request) {
         return userService.updateUser(userId, request);
     }
 @DeleteMapping("/{userId}")
     public String deleteUser(@PathVariable String userId) {
         userService.deleteUser(userId);
         return "User with id " + userId + " has been deleted.";
+    }
+
+    private UserResponse toResponse(user source) {
+        UserResponse response = new UserResponse();
+        response.setId(source.getId());
+        response.setUsername(source.getUsername());
+        response.setFirstName(source.getFirstName());
+        response.setLastName(source.getLastName());
+        response.setEmail(source.getEmail());
+        response.setAge(source.getAge());
+        return response;
     }
 }
 

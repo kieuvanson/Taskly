@@ -1,5 +1,7 @@
 package com.taskly.backend.exception;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -30,10 +32,23 @@ public class GlobalExceptionHandler {
     }
 
 @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity<String> handlingValidException(MethodArgumentNotValidException e) {
-        return ResponseEntity.badRequest().body(e.getFieldError().getDefaultMessage());
-    }
- 
+ResponseEntity<APIrespone<List<String>>> handlingValidException(
+        MethodArgumentNotValidException e) {
+
+    List<String> messages = e.getBindingResult()
+            .getFieldErrors()
+            .stream()
+            .map(fieldError ->
+                    fieldError.getField() + ": " + fieldError.getDefaultMessage())
+            .toList();
+
+    APIrespone<List<String>> response = new APIrespone<>();
+    response.setCode(ErrorCode.VALIDATION_ERROR.getCode());
+    response.setMessage("Validation failed");
+    response.setData(messages);
+
+    return ResponseEntity.badRequest().body(response);
+}
 
 
 }
